@@ -4,6 +4,7 @@ import MenuCard from './components/MenuCard';
 import Navbar from './components/Navbar';
 import CartDrawer from './components/Cart';
 import ReservationsPage from './pages/ReservationsPage';
+import AIChatbot from './components/AIChatbot';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('menu');
@@ -162,6 +163,7 @@ export default function App() {
           <button onClick={() => setActiveTab('menu')} style={styles.tabButton}>Return to Menu</button>
         </div>
       )}
+      <AIChatbot activeOrder={activeOrder} />
     </div>
   );
 }
