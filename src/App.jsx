@@ -1,122 +1,171 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import React, { useState } from 'react';
+import { MENU_ITEMS } from './data/menuData';
+import MenuCard from './components/MenuCard';
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [dietaryFilter, setDietaryFilter] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [maxPrice, setMaxPrice] = useState(25);
+
+  const categories = ['All', 'Starters', 'Mains', 'Desserts', 'Beverages'];
+  const dietaryOptions = ['All', 'Vegetarian', 'Gluten-Free'];
+
+  const filteredItems = MENU_ITEMS.filter((item) => {
+    const matchesCategory = selectedCategory === 'All' || item.category === selectedCategory;
+    const matchesDietary = dietaryFilter === 'All' || item.dietary.includes(dietaryFilter);
+    const matchesSearch =
+      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesPrice = item.price <= maxPrice;
+
+    return item.isAvailable && matchesCategory && matchesDietary && matchesSearch && matchesPrice;
+  });
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div style={styles.container}>
+      <header style={styles.header}>
+        <h1>Smart Restaurant Menu</h1>
+        <p>A catalog of healthy and delcious food options.</p>
+      </header>
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+      {/* Filter & Search Controls */}
+      <section style={styles.controls}>
+        {/* Category Tabs */}
+        <div style={styles.categoryGroup}>
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setSelectedCategory(cat)}
+              style={{
+                ...styles.tabButton,
+                backgroundColor: selectedCategory === cat ? '#2c3e50' : '#f4f4f4',
+                color: selectedCategory === cat ? '#fff' : '#333'
+              }}
+            >
+              {cat}
+            </button>
+          ))}
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
+
+        <div style={styles.filterRow}>
+          <input
+            type="text"
+            placeholder="Search dishes or ingredients..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={styles.searchInput}
+          />
+
+          <select
+            value={dietaryFilter}
+            onChange={(e) => setDietaryFilter(e.target.value)}
+            style={styles.selectInput}
+          >
+            {dietaryOptions.map((opt) => (
+              <option key={opt} value={opt}>
+                Dietary: {opt}
+              </option>
+            ))}
+          </select>
+
+          <label style={styles.priceLabel}>
+            Max Price: <strong>${maxPrice}</strong>
+            <input
+              type="range"
+              min="5"
+              max="25"
+              step="1"
+              value={maxPrice}
+              onChange={(e) => setMaxPrice(Number(e.target.value))}
+              style={{ marginLeft: '8px' }}
+            />
+          </label>
         </div>
       </section>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      {/* Menu Grid */}
+      <main style={styles.grid}>
+        {filteredItems.length > 0 ? (
+          filteredItems.map((item) => <MenuCard key={item.id} item={item} />)
+        ) : (
+          <p style={styles.emptyMessage}>No menu items match your current filters.</p>
+        )}
+      </main>
+    </div>
+  );
 }
 
-export default App
+const styles = {
+  container: {
+    maxWidth: '1100px',
+    margin: '0 auto',
+    padding: '24px',
+    fontFamily: 'system-ui, -apple-system, sans-serif',
+    color: '#222'
+  },
+  header: {
+    textAlign: 'center',
+    marginBottom: '32px'
+  },
+  controls: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '16px',
+    marginBottom: '28px',
+    padding: '16px',
+    backgroundColor: '#fafafa',
+    borderRadius: '8px',
+    border: '1px solid #eaeaea'
+  },
+  categoryGroup: {
+    display: 'flex',
+    gap: '8px',
+    flexWrap: 'wrap'
+  },
+  tabButton: {
+    padding: '8px 16px',
+    border: 'none',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    fontWeight: '600',
+    fontSize: '0.9rem'
+  },
+  filterRow: {
+    display: 'flex',
+    gap: '12px',
+    flexWrap: 'wrap',
+    alignItems: 'center'
+  },
+  searchInput: {
+    flex: '1',
+    minWidth: '200px',
+    padding: '8px 12px',
+    borderRadius: '6px',
+    border: '1px solid #ccc',
+    fontSize: '0.95rem'
+  },
+  selectInput: {
+    padding: '8px 12px',
+    borderRadius: '6px',
+    border: '1px solid #ccc',
+    fontSize: '0.95rem',
+    backgroundColor: '#fff'
+  },
+  priceLabel: {
+    display: 'flex',
+    alignItems: 'center',
+    fontSize: '0.9rem'
+  },
+  grid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+    gap: '20px'
+  },
+  emptyMessage: {
+    gridColumn: '1 / -1',
+    textAlign: 'center',
+    color: '#666',
+    padding: '40px'
+  }
+};
