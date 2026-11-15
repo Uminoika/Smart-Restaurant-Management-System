@@ -22,9 +22,22 @@ export default function Navbar({ activeTab, setActiveTab, cartCount, orderStatus
                         onClick={() => setActiveTab('status')}
                         style={{ ...styles.linkBtn, color: '#88ff6a', fontWeight: 'bold' }}
                     >
-                            Active Order Status
+                        Active Order Status
                     </button>
                 )}
+                <button
+                    onClick={() => setActiveTab('admin')}
+                    style={{
+                        ...styles.linkBtn,
+                        backgroundColor: '#227de6',
+                        padding: '6px 12px',
+                        borderRadius: '4px',
+                        fontWeight: 'bold',
+                        color: '#fff'
+                    }}
+                >
+                    Admin Dashboard
+                </button>
             </div>
             <button onClick={() => setActiveTab('cart')} style={styles.cartBtn}>
                 Cart ({cartCount})
@@ -42,7 +55,9 @@ const styles = {
         backgroundColor: '#2c3e50',
         color: '#fff',
         borderRadius: '8px',
-        marginBottom: '24px'
+        marginBottom: '24px',
+        flexWrap: 'wrap',
+        gap: '12px'
     },
     logo: {
         margin: 0,
@@ -50,7 +65,9 @@ const styles = {
     },
     links: {
         display: 'flex',
-        gap: '16px'
+        gap: '16px',
+        alignItems: 'center',
+        flexWrap: 'wrap'
     },
     linkBtn: {
         background: 'none',

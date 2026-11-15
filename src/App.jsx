@@ -1,16 +1,21 @@
 import React, { useState } from 'react';
-import { MENU_ITEMS } from './data/menuData';
+import { MENU_ITEMS as INITIAL_MENU } from './data/menuData';
 import MenuCard from './components/MenuCard';
 import Navbar from './components/Navbar';
 import CartDrawer from './components/Cart';
 import ReservationsPage from './pages/ReservationsPage';
+import AdminDashboard from './pages/AdminDashboard';
 import AIChatbot from './components/AIChatbot';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('menu');
+  const [activeTab, setActiveTab] = useState('menu'); // 'menu' | 'cart' | 'reservations' | 'status' | 'admin'
+  const [menuItems, setMenuItems] = useState(INITIAL_MENU);
   const [cart, setCart] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [reservations, setReservations] = useState([]);
   const [activeOrder, setActiveOrder] = useState(null);
 
+  // Menu filter states
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [dietaryFilter, setDietaryFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
@@ -19,6 +24,7 @@ export default function App() {
   const categories = ['All', 'Starters', 'Mains', 'Desserts', 'Beverages'];
   const dietaryOptions = ['All', 'Vegetarian', 'Gluten-Free'];
 
+  // Cart Handlers
   const handleAddToCart = (item) => {
     setCart((prevCart) => {
       const existing = prevCart.find((i) => i.id === item.id);
@@ -38,12 +44,52 @@ export default function App() {
   };
 
   const handleCheckout = (order) => {
+    setOrders((prev) => [order, ...prev]);
     setActiveOrder(order);
     setCart([]);
     setActiveTab('status');
   };
 
-  const filteredItems = MENU_ITEMS.filter((item) => {
+  // Reservation Handler
+  const handleNewReservation = (reservation) => {
+    setReservations((prev) => [reservation, ...prev]);
+  };
+
+  // Admin CRUD Handlers
+  const handleAddMenuItem = (newItem) => {
+    setMenuItems((prev) => [newItem, ...prev]);
+  };
+
+  const handleUpdateMenuItem = (updatedItem) => {
+    setMenuItems((prev) => prev.map((i) => (i.id === updatedItem.id ? updatedItem : i)));
+  };
+
+  const handleDeleteMenuItem = (id) => {
+    setMenuItems((prev) => prev.filter((i) => i.id !== id));
+  };
+
+  const handleUpdateOrderStatus = (orderId, newStatus) => {
+    setOrders((prev) =>
+      prev.map((ord) => {
+        if (ord.id === orderId) {
+          const updated = { ...ord, status: newStatus };
+          if (activeOrder && activeOrder.id === orderId) {
+            setActiveOrder(updated);
+          }
+          return updated;
+        }
+        return ord;
+      })
+    );
+  };
+
+  const handleUpdateReservationStatus = (resId, newStatus) => {
+    setReservations((prev) =>
+      prev.map((res) => (res.id === resId ? { ...res, status: newStatus } : res))
+    );
+  };
+
+  const filteredItems = menuItems.filter((item) => {
     const matchesCategory = selectedCategory === 'All' || item.category === selectedCategory;
     const matchesDietary = dietaryFilter === 'All' || item.dietary.includes(dietaryFilter);
     const matchesSearch =
@@ -68,7 +114,7 @@ export default function App() {
         <div>
           <header style={styles.header}>
             <h1>Smart Restaurant Menu</h1>
-            <p>A catalog of healthy and delicous food options.</p>
+            <p>A catalog of healthy and delicious food options.</p>
           </header>
 
           <section style={styles.controls}>
@@ -141,7 +187,9 @@ export default function App() {
         />
       )}
 
-      {activeTab === 'reservations' && <ReservationsPage />}
+      {activeTab === 'reservations' && (
+        <ReservationsPage onNewReservation={handleNewReservation} />
+      )}
 
       {activeTab === 'status' && activeOrder && (
         <div style={styles.statusContainer}>
@@ -163,6 +211,20 @@ export default function App() {
           <button onClick={() => setActiveTab('menu')} style={styles.tabButton}>Return to Menu</button>
         </div>
       )}
+
+      {activeTab === 'admin' && (
+        <AdminDashboard
+          menuItems={menuItems}
+          onAddMenuItem={handleAddMenuItem}
+          onUpdateMenuItem={handleUpdateMenuItem}
+          onDeleteMenuItem={handleDeleteMenuItem}
+          orders={orders}
+          onUpdateOrderStatus={handleUpdateOrderStatus}
+          reservations={reservations}
+          onUpdateReservationStatus={handleUpdateReservationStatus}
+        />
+      )}
+
       <AIChatbot activeOrder={activeOrder} />
     </div>
   );
